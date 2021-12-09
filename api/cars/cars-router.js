@@ -1,49 +1,45 @@
 // DO YOUR MAGIC
-const router = require('express').Router()
- const knex = require('knex');
-const cars = require('./cars-model')
+const express = require('express')
+
+const Car = require('./cars-model')
+
 
 const { checkCarId,
     checkCarPayload,
     checkVinNumberValid,
     checkVinNumberUnique } = require('./cars-middleware');
 
- //const router = express.Router();
+const router = express.Router();
 
-router.get('/', (req , res ) => {
-    cars.getAll()
-        .then(totalCars => {
-            console.log('getting all cars');
-            res.status(200).json(totalCars)
-        })
-        .catch(err => {
-            res.json({ message: err.message })
-        })
-          
+router.get('/', async (req, res,next) => {
+   try {
+      const cars = await Car.getAll()
+          res.json(cars)
+      }
+      
+   catch(err) {
+       next(err)
+   }
 })
+ router.get('/:id',checkCarId, async (req,res,next) => {
+     
+            res.json(req.car)
+        
+    })
+     
 
-router.get('/api/cars/:id', checkCarId, (req, res,next) => {
-    const { id } = req.params;
-    cars.getById(id)
-        .then(car => {
-            res.status(200).json(car)
-        })
-        .catch(err => {
-            res.json({ message: err.message })
-        })
-})
-
-
-router.post('/api/cars',checkCarPayload, checkVinNumberValid, checkVinNumberUnique,
-     ( req, res, next) => {
-        const newCar = req.body
-        cars.create(newCar)
-            .then(car => {
-                res.status(200).json(car)
-            })
-            .catch(err => {
-                res.json({ message: err.message })
-            })
+router.post('/',checkCarPayload, checkVinNumberValid, checkVinNumberUnique,
+    async ( req, res, next) => {
+        try {
+            const cars = await Car.create(req.body)
+                res.json(cars)
+            }
+            
+         catch(err) {
+             next(err)
+         }  
+       
+        
     })
 
 
